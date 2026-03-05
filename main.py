@@ -1,15 +1,24 @@
-from langgraph.graph import StateGraph
-from graph import search, build_dependencies, AgentState
+import asyncio
+from graph import create_graph, AgentState
+
+async def main():
+    app = await create_graph()
+    initial_state = {
+        'commodity_name': 'copper',
+        'messages': [],
+        'dependency_graph': {}
+    }
+    # 3. Invoke the graph asynchronously
+    print(f"--- Running analysis for {initial_state['commodity_name']} ---")
+    async for event in app.astream(initial_state):
+        for node, output in event.items():
+            print(f"--- Node: {node} ---")
+            if "messages" in output:
+                last_msg = output["messages"][-1]
+                if last_msg.content:
+                    print(f"Content: {last_msg.content}")
+                if hasattr(last_msg, "tool_calls") and last_msg.tool_calls:
+                    print(f"Tool calls: {last_msg.tool_calls}")
 
 if __name__ == "__main__":
-    graph = StateGraph(AgentState)
-    graph.add_node('search', search)
-    graph.set_entry_point('search')
-    graph.set_finish_point('search')
-    app = graph.compile()
-    res = app.invoke({
-        'commodity_name': 'copper',
-        'search_result': [],
-        'dependency_graph': {}
-    })
-    print(res["search_result"])
+    asyncio.run(main())

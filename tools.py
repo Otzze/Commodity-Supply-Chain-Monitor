@@ -1,21 +1,20 @@
+import os
+from dotenv import load_dotenv
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-brave_key = None
-fmp_key = None
+load_dotenv()
+
+brave_key = os.getenv("BRAVE_API_KEY")
+fmp_key = os.getenv("FMP_API_KEY")
 
 async def init_tools():
+    brave_server_path = os.path.abspath("mcp-servers/brave-search-mcp-server/dist/index.js")
     client = MultiServerMCPClient({
         "brave": {
             "transport": "stdio",
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+            "command": "node",
+            "args": [brave_server_path],
             "env": {"BRAVE_API_KEY": brave_key}
-        },
-        "finance": {
-            "transport": "stdio",
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-fmp"],
-            "env": {"FMP_API_KEY": fmp_key}
         }
     })
 
